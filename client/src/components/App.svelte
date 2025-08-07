@@ -1,22 +1,24 @@
 <script>
+  import { submitPrompt as submitPromptApi } from '../lib/api';
+  import ContentPreview from './ContentPreview.svelte';
+
   let prompt = '';
-  let aiResult = '';
   let loading = false;
   let error = '';
+  let generatedContent = null;
 
   async function submitPrompt() {
-    aiResult = '';
     error = '';
     loading = true;
+    generatedContent = null;
+    
     try {
-      const res = await fetch('/prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-      });
-      if (!res.ok) throw new Error(`Error: ${res.status}`);
-      const data = await res.json();
-      aiResult = data.result || JSON.stringify(data);
+      const data = await submitPromptApi(prompt);
+      generatedContent = data.content || {
+        title: 'Generated Content',
+        body: data.result || JSON.stringify(data),
+        layout: 'default'
+      };
     } catch (err) {
       error = err.message;
     } finally {
@@ -41,11 +43,8 @@
   {#if error}
     <div class="error">{error}</div>
   {/if}
-  {#if aiResult}
-    <div class="result">
-      <strong>AI Result:</strong>
-      <pre>{aiResult}</pre>
-    </div>
+  {#if generatedContent}
+    <ContentPreview content={generatedContent} />
   {/if}
 </div>
 
@@ -91,16 +90,5 @@
     padding: 0.5rem;
     font-size: 0.95rem;
   }
-  .result {
-    background: #f6f8fa;
-    border-radius: 6px;
-    padding: 0.7rem;
-    font-size: 0.98rem;
-    overflow-x: auto;
-  }
-  pre {
-    margin: 0.5rem 0 0 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
+  /* Component styles end */
 </style>

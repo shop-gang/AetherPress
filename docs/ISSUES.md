@@ -1,98 +1,165 @@
-# Implementation Issues & Task Breakdown: AI Processing Layer
+# Quick-Build Strategy to Complete Core Loop
 
 ## Purpose
 
-This section provides a detailed breakdown of the next implementation tasks for the AI Processing Layer, as outlined in the Feature Checklist section of the MVP Checklist and NEXT_STEPS.
+This section outlines the simplified implementation strategy to complete the core loop: Prompt -> AI Processing -> Preview -> Basic Override -> PDF Export.
 
----
+## Current Progress ✓
 
-## AI Processing Layer Implementation
+- Basic infrastructure is stable
+- Prompt handling is working
+- Error handling and retry logic implemented
 
-### Goal
+## Implementation Plan
 
-Establish a robust AI service abstraction and content generation flow, enabling the backend to generate, structure, and validate AI-powered content for user prompts.
+### Day 1: AI Mock & Preview ✓
 
-### Tasks & Subtasks
+#### Morning: Simple AI Service
 
-#### Service Abstraction
+```javascript
+class SimpleAIService {
+  async generateContent(prompt) {
+    return {
+      content: {
+        title: `Generated from: ${prompt}`,
+        body: `This is a simple response to demonstrate the flow.
+               Later we can integrate real AI here.
+               For now, we're testing the core loop.`,
+        layout: "default",
+      },
+      metadata: {
+        model: "mock-1",
+        tokens: prompt.split(" ").length,
+      },
+    };
+  }
+}
+```
 
-1. **AI Service Interface**
+#### Afternoon: Preview System
 
-   - [ ] Design and implement an interface for AI service integration (e.g., OpenAI, Gemini, mock service).
-   - [ ] Ensure the interface supports text generation and can be extended for images or other modalities.
+```javascript
+const previewTemplate = (content) => `
+  <div class="preview">
+    <h1>${content.title}</h1>
+    <div class="content">${content.body}</div>
+  </div>
+`;
 
-2. **Mock Implementation**
+app.get("/preview", (req, res) => {
+  const { content } = req.query;
+  res.send(previewTemplate(JSON.parse(content)));
+});
+```
 
-   - [ ] Create a mock AI service for local development and testing.
-   - [ ] Ensure the mock returns realistic, structured responses.
+### Day 2: Override & Export ✓
 
-3. **Error Handling**
+#### Morning: Basic Override
 
-   - [ ] Add error handling for failed AI service calls.
-   - [ ] Ensure errors are logged and returned in a consistent format.
+```javascript
+// Simple content update endpoint
+app.post("/override", (req, res) => {
+  const { content, changes } = req.body;
+  const updated = { ...content, ...changes };
+  res.json({ content: updated });
+});
+```
 
-4. **Response Formatting**
-   - [ ] Standardize the format of AI service responses (e.g., { result: ... }).
+#### Afternoon: PDF Export
 
-#### Content Generation
+```javascript
+const puppeteer = require("puppeteer");
 
-5. **Text Generation Flow**
+app.get("/export", async (req, res) => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(previewTemplate(req.query.content));
+  const pdf = await page.pdf({ format: "A4" });
+  await browser.close();
+  res.setHeader("Content-Type", "application/pdf");
+  res.end(pdf); // Use res.end() for binary data
+});
+```
 
-   - [ ] Implement the flow for generating text content from prompts using the AI service abstraction.
+### Day 3: Frontend Integration
 
-6. **Content Structuring**
+#### Morning: Component Updates
 
-   - [ ] Structure generated content for downstream processing (e.g., preview, export).
+```javascript
+// Simple preview component
+const Preview = {
+  async load(content) {
+    const response = await fetch(
+      "/preview?content=" + encodeURIComponent(JSON.stringify(content))
+    );
+    return response.text();
+  },
+};
 
-7. **Response Validation**
+// Basic override component
+const Editor = {
+  async save(content, changes) {
+    const response = await fetch("/override", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content, changes }),
+    });
+    return response.json();
+  },
+};
+```
 
-   - [ ] Validate AI responses for completeness and correctness.
+#### Afternoon: Flow Integration
 
-8. **Quality Checks**
-   - [ ] Add basic quality checks (e.g., non-empty, not offensive, etc.).
+- Connect all endpoints
+- Test full workflow
+- Add basic error handling
 
----
+### Day 4: Polish & Test
 
-### Notes on Current State
+#### Morning: Core Flow Testing
 
-- Prompt processing is complete and verified.
-- The next step is to abstract and implement the AI processing layer for content generation.
+- Test each step in sequence
+- Verify data flow
+- Check error cases
 
----
+#### Afternoon: Documentation & Cleanup
 
-### TODO: Restore Frontend Test Automation
+- Document usage
+- Clean up code
+- Prepare for demo
 
-- No client/ tests are currently present or tracked.
-- Add a script in scripts/ (e.g., run-client-tests.sh) to run all frontend (client/) tests from anywhere in the project, mirroring the backend test script.
-- Scaffold and commit at least one Vitest-based test for the Svelte frontend to re-establish automated client testing.
+## Quick-Build Principles
 
-### TODO: Enhance Backend Test Coverage
+1. **Simplicity First**
 
-- Add prompt content validation tests:
-  - Verify created prompt content matches sent content
-  - Add validation for empty/invalid content
-  - Test prompt length limits and format requirements
-  - Check proper sanitization/escaping of special characters
+   - Start with minimal implementation
+   - Focus on core functionality
+   - Avoid premature optimization
 
-### TODO: Additional AI Service Test Coverage
+2. **Rapid Iteration**
 
-- Content Generation Flow Tests:
-  - Verify text generation flow end-to-end
-  - Test content structuring for preview/export
-  - Add response validation test cases
-  - Test basic quality checks (non-empty, etc.)
+   - Get basic flow working
+   - Test and fix issues
+   - Then enhance features
 
----
+3. **Pragmatic Choices**
+   - Use synchronous flows initially
+   - Minimal but effective error handling
+   - Focus on completion over perfection
 
-## Acceptance Criteria
+## Success Criteria
 
-- The backend uses a service abstraction for AI content generation.
-- A mock AI service is available for development and testing.
-- Errors from the AI service are handled and returned in a standard format.
-- Generated content is structured, validated, and ready for preview/export.
+- Complete core loop working end-to-end
+- Basic error handling in place
+- Simple but functional UI
+- PDF export capability demonstrated
 
----
+## Next Steps After Quick-Build
 
-## Notice
+- Enhance AI service with real integration
+- Improve preview templates
+- Add advanced PDF options
+- Expand error handling
 
-Further enhancements (real AI integration, advanced validation, etc.) will be planned after the AI processing layer is complete and verified.
+Remember: The goal is a working prototype that demonstrates the full flow. We can enhance individual components after proving the concept works.

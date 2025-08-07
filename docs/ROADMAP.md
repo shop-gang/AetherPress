@@ -1,32 +1,39 @@
 # AetherPress Development Roadmap
 
-## Phase 0: Current Milestones (All Pending)
+## Phase 0: Current Milestones
 
 ### Core Infrastructure
 
-1. **Express Backend Setup** (Pending)
+1. **Express Backend Setup** (In Progress ⏳)
    Goal: Establish robust backend server infrastructure for handling API requests and business logic
-   Acceptance Criteria:
-   - Server starts and handles requests without errors
-   - Middleware chain processes requests correctly
-   - Error handling returns appropriate status codes and messages
-   - Basic API endpoint structure implemented
-
-2. **Svelte Frontend Integration** (Pending)
+   Status:
+   - ✓ Server starts and handles requests reliably
+   - ✓ Basic API endpoint structure implemented
+   - ✓ Error handling with appropriate status codes
+   - ✓ Health check system implemented
+   - ✓ Startup reliability improvements
+   - ⏳ Advanced middleware chain in progress
+2. **Svelte Frontend Integration** (In Progress ⏳)
    Goal: Provide responsive and intuitive user interface for content generation and management using Svelte SPA
-   Acceptance Criteria:
-   - Frontend successfully communicates with backend API
-   - Components render and update efficiently
-   - User interactions are smooth and provide feedback
-   - Error states are properly handled and displayed
+   Status:
 
-3. **SQLite Database Implementation** (Pending)
+   - ✓ Frontend-backend communication established
+   - ✓ Basic components implemented
+   - ✓ Loading states and error handling
+   - ✓ Retry logic for reliability
+   - ✓ User feedback mechanisms
+   - ⏳ Advanced UI features in progress
+
+3. **SQLite Database Implementation** (In Progress ⏳)
    Goal: Reliable data persistence layer for storing user content and application state using SQLite (with future migration to PostgreSQL planned)
-   Acceptance Criteria:
-   - SQLite successfully stores and retrieves data
-   - Data integrity is maintained across operations
-   - Query performance meets response time requirements
-   - Backup and recovery procedures are established
+   Status:
+
+   - ✓ SQLite initialization and basic setup
+   - ✓ Basic CRUD operations implemented
+   - ✓ Migration system in place
+   - ✓ PostgreSQL migration plan documented
+   - ⏳ Advanced query optimization pending
+   - ⏳ Full schema implementation in progress
 
 4. **API Architecture Enhancement** (Pending)
    Goal: Complete and optimize API endpoint structure
@@ -47,117 +54,106 @@
 ### Base Features (MVP)
 
 1. **Prompt Handling** (Pending)
-
-   - Goal: Accept user input for AI processing and route it to the backend.
-   - Acceptance Criteria:
-     - User can submit a prompt via the frontend.
-     - Backend receives and processes the prompt.
-     - System provides feedback on submission success or failure.
+   Goal: Accept user input for AI processing and route it to the backend.
+   Acceptance Criteria:
+   - User can submit a prompt via the frontend.
+   - Backend receives and processes the prompt.
+   - System provides feedback on submission success or failure.
 
 2. **AI Processing** (Pending)
-
-   - Goal: Simulate AI content generation using a service abstraction layer.
-   - Acceptance Criteria:
-     - Backend generates content using hardcoded logic or a mock AI service.
-     - Service abstraction layer is in place for future real AI integration.
-     - Errors in AI processing are handled gracefully.
+   Goal: Simulate AI content generation using a service abstraction layer.
+   Acceptance Criteria:
+   - Backend generates content using hardcoded logic or a mock AI service.
+   - Service abstraction layer is in place for future real AI integration.
+   - Errors in AI processing are handled gracefully.
 
 3. **Preview Generation** (Pending)
-
-   - Goal: Provide a basic HTML preview of generated content.
-   - Acceptance Criteria:
-     - User can preview generated content in the frontend.
-     - Preview updates in real time as content changes.
-     - Preview matches the structure of the final export.
+   Goal: Provide a basic HTML preview of generated content.
+   Acceptance Criteria:
+   - User can preview generated content in the frontend.
+   - Preview updates in real time as content changes.
+   - Preview matches the structure of the final export.
 
 4. **Basic Override** (Pending)
-
-   - Goal: Allow minimal user edits to generated content before export.
-   - Acceptance Criteria:
-     - User can edit content in the frontend.
-     - Edits are reflected in the preview.
-     - Edits are included in the exported PDF.
+   Goal: Allow minimal user edits to generated content before export.
+   Acceptance Criteria:
+   - User can edit content in the frontend.
+   - Edits are reflected in the preview.
+   - Edits are included in the exported PDF.
 
 5. **PDF Export (Prototype)** (Pending)
-
-   - Goal: Generate PDFs using pdf-lib for prototype purposes.
-   - Acceptance Criteria:
-     - User can export content as a PDF.
-     - Exported PDF matches the preview layout.
-     - PDF generation is reliable for basic content.
+   Goal: Generate PDFs using pdf-lib for prototype purposes.
+   Acceptance Criteria:
+   - User can export content as a PDF.
+   - Exported PDF matches the preview layout.
+   - PDF generation is reliable for basic content.
 
 6. **Database Integration** (Pending)
-   - Goal: Store and retrieve content using SQLite.
-   - Acceptance Criteria:
-     - Content is saved to and loaded from the database.
-     - Database operations are reliable and performant.
-     - Test endpoint verifies database functionality.
+   Goal: Store and retrieve content using SQLite.
+   Acceptance Criteria:
+   - Content is saved to and loaded from the database.
+   - Database operations are reliable and performant.
+   - Test endpoint verifies database functionality.
 
 ## Upcoming Milestones
 
 ### Phase 1: Core Enhancement
 
 1. **AI Integration** (Planned)
-
-   - Goal: Integrate real AI services for text and image generation.
-   - Acceptance Criteria:
-     - System can connect to at least one external AI provider (e.g., OpenAI, Gemini).
-     - User can select between simulated and real AI processing.
-     - AI-generated content is distinguishable from simulated content.
-     - Error handling and fallback for AI service outages.
+   Goal: Integrate real AI services for text and image generation.
+   Acceptance Criteria:
+   - System can connect to at least one external AI provider (e.g., OpenAI, Gemini).
+   - User can select between simulated and real AI processing.
+   - AI-generated content is distinguishable from simulated content.
+   - Error handling and fallback for AI service outages.
 
 2. **PDF Generation Upgrade** (Planned)
-
-   - Goal: Migrate from pdf-lib to Puppeteer for advanced PDF export.
-   - Acceptance Criteria:
-     - PDFs support advanced HTML/CSS layouts and images.
-     - Exported PDFs match the on-screen preview.
-     - Generation time is reasonable for complex documents.
-     - System can switch between pdf-lib and Puppeteer as needed.
+   Goal: Migrate from pdf-lib to Puppeteer for advanced PDF export.
+   Acceptance Criteria:
+   - PDFs support advanced HTML/CSS layouts and images.
+   - Exported PDFs match the on-screen preview.
+   - Generation time is reasonable for complex documents.
+   - System can switch between pdf-lib and Puppeteer as needed.
 
 3. **Performance Optimization** (Planned)
-
-   - Goal: Implement asynchronous processing and improve system responsiveness.
-   - Acceptance Criteria:
-     - Backend supports async request handling for long-running tasks.
-     - UI remains responsive during heavy processing.
-     - System can queue and process multiple requests efficiently.
-     - Performance metrics are tracked and reported.
+   Goal: Implement asynchronous processing and improve system responsiveness.
+   Acceptance Criteria:
+   - Backend supports async request handling for long-running tasks.
+   - UI remains responsive during heavy processing.
+   - System can queue and process multiple requests efficiently.
+   - Performance metrics are tracked and reported.
 
 4. **UI/UX Enhancement** (Planned)
-
-   - Goal: Improve the frontend for a more interactive and accessible user experience.
-   - Acceptance Criteria:
-     - UI updates in real time as data changes.
-     - Accessibility standards (WCAG 2.1) are met.
-     - User feedback is collected and incorporated into design.
-     - Mobile and tablet layouts are supported.
+   Goal: Improve the frontend for a more interactive and accessible user experience.
+   Acceptance Criteria:
+   - UI updates in real time as data changes.
+   - Accessibility standards (WCAG 2.1) are met.
+   - User feedback is collected and incorporated into design.
+   - Mobile and tablet layouts are supported.
 
 5. **User Authentication & Session Management** (Planned)
-
-   - Goal: Add secure user authentication and session management.
-   - Acceptance Criteria:
-     - Users can register, log in, and log out securely.
-     - Sessions persist across browser reloads.
-     - Role-based access control is implemented.
-     - Sensitive data is protected according to best practices.
+   Goal: Add secure user authentication and session management.
+   Acceptance Criteria:
+   - Users can register, log in, and log out securely.
+   - Sessions persist across browser reloads.
+   - Role-based access control is implemented.
+   - Sensitive data is protected according to best practices.
 
 6. **Database Migration to PostgreSQL** (Planned)
-
-   - Goal: Transition from SQLite to PostgreSQL for production scalability and advanced features.
-   - Acceptance Criteria:
-     - PostgreSQL is set up and integrated as the primary database.
-     - Data is migrated from SQLite to PostgreSQL with integrity.
-     - New features leverage PostgreSQL capabilities.
-     - Documentation is updated to reflect the migration.
+   Goal: Transition from SQLite to PostgreSQL for production scalability and advanced features.
+   Acceptance Criteria:
+   - PostgreSQL is set up and integrated as the primary database.
+   - Data is migrated from SQLite to PostgreSQL with integrity.
+   - New features leverage PostgreSQL capabilities.
+   - Documentation is updated to reflect the migration.
 
 7. **Database Schema Expansion** (Planned)
-   - Goal: Expand the database to support more complex workflows and data types.
-   - Acceptance Criteria:
-     - New tables and relationships are added for advanced features.
-     - Migrations are automated and reversible.
-     - Data integrity is maintained during schema changes.
-     - Documentation is updated to reflect schema changes.
+   Goal: Expand the database to support more complex workflows and data types.
+   Acceptance Criteria:
+   - New tables and relationships are added for advanced features.
+   - Migrations are automated and reversible.
+   - Data integrity is maintained during schema changes.
+   - Documentation is updated to reflect schema changes.
 
 ### Phase 2: User Experience & Content Management
 

@@ -1,8 +1,25 @@
 # AetherPress Prototype - Welcome
 
-> **Current Stable Version:** The current stable version of this project is named `core`. All new stable development and releases are tracked on the `core` branch.
-
 The goal is a quick-build prototype involving a Node.js backend (for Puppeteer compatibility and potentially Express/FastAPI) and a modern frontend SPA (Svelte). This project demonstrates the foundational architecture for a quick-build prototype of AetherPress, focusing on the core loop: Prompt -> AI Processing -> Preview -> Basic Override -> PDF Export.
+
+## Development Philosophy
+
+We maintain stability through structured change management:
+
+1. Discuss and understand the full context
+2. Document agreements and decisions
+3. Create actionable, phased plans
+4. Implement incrementally
+
+All contributors, human and AI, must:
+
+- Start with README.md
+- Respect project structure
+- Follow established patterns
+- Propose changes that align with architecture
+
+This approach prevents destabilizing changes and maintains our clean, component-based architecture.
+🚨 **All contributors must read and follow the Development Philosophy before making any changes.** 🚨
 
 ## Vision
 
@@ -33,11 +50,14 @@ To empower creators (writers, poets, educators, marketers) to effortlessly desig
 
 - **Client:** Modern, component-based JS framework (Vite/Svelte). Focus on a clean, responsive UI.
 - **Server:** Scalable platform (Express/Node.js). Ready to orchestrate multiple API calls.
-- **Database:** For a balance of structure and flexibility, SQLite (with planned migration to PostgreSQL/JSONB).
+- **Database:** For a balance of structure and flexibility (PostgreSQL/JSONB).
+  - Production deployments can use any PostgreSQL-compatible service (Azure Database, AWS RDS, etc.)
+  - Currently, SQLite3 is used for live development. Migration to PostgreSQL/JSONB is planned and health checks will be updated accordingly.
+  - See `/server/index.js` for the current health check implementation and TODO note.
 - **AI:**
   - **Default:** Use Google's Gemini for both text and image generation.
   - Leverage best-in-class third-party APIs for core GenAI (image generation, possibly LLM for assistant). Build custom logic for agent orchestration and workflow, not foundational models.
-  - Optionally support use of [GitHub Models](https://github.com/features/models) to find and experiment with AI models for free.
+  - Support use of [GitHub Models](https://github.com/features/models) for discovery and experimentation with AI models (for free).
 - **PDF Generation:** Use a proven, robust library, puppeteer for HTML-to-PDF.
 - **Persistence:** Standard database for user accounts, projects, preferences, asset metadata.
 

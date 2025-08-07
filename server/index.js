@@ -3,8 +3,26 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
+const puppeteer = require("puppeteer");
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Puppeteer global browser instance
+let browserInstance;
+let puppeteerReady = false;
+(async () => {
+  try {
+    browserInstance = await puppeteer.launch({
+      executablePath: "/usr/bin/google-chrome",
+      args: ["--no-sandbox"],
+    });
+    puppeteerReady = true;
+    console.log("Puppeteer initialized successfully with system Chrome");
+  } catch (err) {
+    console.error("Puppeteer failed to launch:", err);
+    // Optionally exit if critical: process.exit(1);
+  }
+})();
 
 // Trust proxy for rate limiting
 app.set("trust proxy", 1);
@@ -16,8 +34,23 @@ app.use(cors());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 
 // Health endpoint
+// Checks both SQLite3 and Puppeteer status
+const db = require("./db");
 app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+  db.get("SELECT 1", (err) => {
+    if (err || !puppeteerReady) {
+      return res.status(503).json({
+        status: "error",
+        db: err ? "unavailable" : "ok",
+        puppeteer: puppeteerReady ? "ok" : "initializing",
+      });
+    }
+    res.status(200).json({
+      status: "ok",
+      db: "sqlite3",
+      puppeteer: "ok",
+    });
+  });
 });
 
 // Default route
@@ -68,15 +101,175 @@ app.post("/prompt", async (req, res, next) => {
       .json({ error: "Prompt is required and must be a non-empty string." });
   }
   try {
-    // Use AI service abstraction
-    const aiResponse = await aiService.generateText(prompt);
+    // Use AI service abstraction with new content format
+    const aiResponse = await aiService.generateContent(prompt);
     crud.createPrompt(prompt, (err, dbResult) => {
       if (err) return next(err);
-      res.status(201).json({ ...aiResponse, promptId: dbResult.id });
+      // Store both prompt and generated content
+      crud.createAIResult(dbResult.id, aiResponse.content, (err, aiResult) => {
+        if (err) return next(err);
+        res.status(201).json({
+          ...aiResponse,
+          promptId: dbResult.id,
+          resultId: aiResult.id,
+        });
+      });
     });
   } catch (err) {
     // AI service error handling
     next(err);
+  }
+});
+
+// --- PREVIEW ENDPOINT ---
+const previewTemplate = (content) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .preview { max-width: 800px; margin: 2rem auto; font-family: system-ui; }
+    .preview h1 { color: #2c3e50; }
+    .preview .content { line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="preview">
+    <h1>${content.title}</h1>
+    <div class="content">${content.body}</div>
+  </div>
+</body>
+</html>
+`;
+
+app.get("/preview", (req, res) => {
+  const { content } = req.query;
+  if (!content) {
+    return res.status(400).json({ error: "Content parameter is required" });
+  }
+  try {
+    const contentObj = JSON.parse(content);
+    if (!contentObj.title || !contentObj.body) {
+      return res.status(400).json({
+        error: "Content must include title and body",
+      });
+    }
+    res.send(previewTemplate(contentObj));
+  } catch (err) {
+    res.status(400).json({
+      error: "Invalid content format",
+      details: err.message,
+    });
+  }
+});
+
+// --- OVERRIDE ENDPOINT ---
+app.post("/override", (req, res) => {
+  const { content, changes } = req.body;
+
+  // Basic input validation
+  if (!content || !changes || typeof content !== "object") {
+    return res.status(400).json({ error: "Invalid input format" });
+  }
+
+  try {
+    const updated = { ...content, ...changes };
+    res.json({ content: updated });
+  } catch (err) {
+    res.status(400).json({
+      error: "Failed to update content",
+      details: err.message,
+    });
+  }
+});
+
+// --- PDF EXPORT ENDPOINT ---
+app.post("/export", async (req, res, next) => {
+  // Log and persist the received request body
+  console.log("--- /export request body ---");
+  console.log(req.body);
+  const fs = require("fs");
+  const path = require("path");
+  try {
+    const reqBodyPath = path.resolve(
+      __dirname,
+      "../samples/export_request_body.json"
+    );
+    fs.writeFileSync(reqBodyPath, JSON.stringify(req.body, null, 2));
+  } catch (e) {
+    console.error("Failed to write export_request_body.json:", e);
+  }
+
+  const { title, body } = req.body;
+  if (!title || !body) {
+    return res
+      .status(400)
+      .json({ error: "Content must include title and body" });
+  }
+
+  if (!puppeteerReady || !browserInstance) {
+    return res.status(503).json({
+      error: "PDF generation service not ready",
+      details: "Puppeteer is still initializing or failed to launch",
+    });
+  }
+
+  console.log("--- Starting PDF generation ---");
+  let page;
+  try {
+    page = await browserInstance.newPage();
+    console.log("Created new Puppeteer page");
+
+    const contentObj = { title, body };
+    await page.setContent(previewTemplate(contentObj));
+    console.log("Set page content successfully");
+
+    console.log("Starting PDF generation with Puppeteer...");
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: {
+        top: "1cm",
+        right: "1cm",
+        bottom: "1cm",
+        left: "1cm",
+      },
+    });
+    // Log and persist the first 16 bytes of the PDF buffer
+    console.log("--- /export PDF buffer (first 16 bytes) ---");
+    console.log(pdf.slice(0, 16));
+    try {
+      const pdfFirst16Path = path.resolve(
+        __dirname,
+        "../samples/export_pdf_first16.bin"
+      );
+      fs.writeFileSync(pdfFirst16Path, pdf.slice(0, 16));
+    } catch (e) {
+      console.error("Failed to write export_pdf_first16.bin:", e);
+    }
+    console.log("\n--- Preparing response ---");
+    res.setHeader("Content-Disposition", "inline; filename=output.pdf");
+    res.setHeader("Content-Type", "application/pdf");
+
+    console.log("Response headers set:", {
+      "Content-Type": res.getHeader("Content-Type"),
+      "Content-Disposition": res.getHeader("Content-Disposition"),
+    });
+
+    console.log(`PDF Buffer details:
+    - Total size: ${pdf.length} bytes
+    - First 5 bytes: ${pdf.slice(0, 5).toString()}
+    - Is Buffer?: ${Buffer.isBuffer(pdf)}
+    `);
+
+    console.log("Sending PDF response...");
+    // Use res.end() instead of res.send() to avoid Express's automatic handling
+    res.end(pdf);
+    console.log("PDF response sent successfully");
+  } catch (err) {
+    err.message = `Failed to generate PDF: ${err.message}`;
+    next(err);
+  } finally {
+    if (page) await page.close();
   }
 });
 
@@ -255,4 +448,12 @@ app.delete("/api/pdf_exports/:id", (req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
+});
+
+// Graceful shutdown for Puppeteer and DB
+process.on("SIGINT", async () => {
+  console.log("Received SIGINT. Closing resources...");
+  if (browserInstance) await browserInstance.close();
+  db.close();
+  process.exit(0);
 });

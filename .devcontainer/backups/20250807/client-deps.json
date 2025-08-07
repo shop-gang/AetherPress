@@ -1,0 +1,21 @@
+{
+  "version": "0.0.0",
+  "name": "client",
+  "dependencies": {
+    "@sveltejs/vite-plugin-svelte": {
+      "version": "5.1.0",
+      "resolved": "https://registry.npmjs.org/@sveltejs/vite-plugin-svelte/-/vite-plugin-svelte-5.1.0.tgz",
+      "overridden": false
+    },
+    "svelte": {
+      "version": "5.35.4",
+      "resolved": "https://registry.npmjs.org/svelte/-/svelte-5.35.4.tgz",
+      "overridden": false
+    },
+    "vite": {
+      "version": "6.3.5",
+      "resolved": "https://registry.npmjs.org/vite/-/vite-6.3.5.tgz",
+      "overridden": false
+    }
+  }
+}

@@ -5,22 +5,27 @@ class AIService {
   /**
    * Generate text content from a prompt.
    * @param {string} prompt - The user prompt.
-   * @returns {Promise<{ result: string, meta?: object }>} - Structured AI response.
+   * @returns {Promise<{ content: { title: string, body: string, layout: string }, metadata: object }>}
    */
-  async generateText(prompt) {
+  async generateContent(prompt) {
     throw new Error("Not implemented");
   }
 }
 
 // Mock implementation for development and testing
 class MockAIService extends AIService {
-  async generateText(prompt) {
+  async generateContent(prompt) {
     // Simulate realistic, structured AI output
     return {
-      result: `AI (mock) response to: "${prompt}"`,
-      meta: {
-        provider: "mock",
-        timestamp: new Date().toISOString(),
+      content: {
+        title: `Generated from: ${prompt}`,
+        body: `This is a simple response to demonstrate the flow.
+               Later we can integrate real AI here.
+               For now, we're testing the core loop.`,
+        layout: "default",
+      },
+      metadata: {
+        model: "mock-1",
         tokens: prompt.split(/\s+/).length,
       },
     };

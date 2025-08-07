@@ -34,9 +34,16 @@ exports.deletePrompt = (id, cb) => {
 
 // --- AI_RESULTS ---
 exports.createAIResult = (prompt_id, result, cb) => {
+  let jsonResult;
+  try {
+    jsonResult = JSON.stringify(result);
+  } catch (e) {
+    return cb(new Error("Invalid result object for JSON serialization"));
+  }
+
   db.run(
     `INSERT INTO ai_results (prompt_id, result) VALUES (?, ?)`,
-    [prompt_id, result],
+    [prompt_id, jsonResult],
     function (err) {
       cb(err, this ? { id: this.lastID } : null);
     }
@@ -44,11 +51,34 @@ exports.createAIResult = (prompt_id, result, cb) => {
 };
 
 exports.getAIResults = (cb) => {
-  db.all(`SELECT * FROM ai_results ORDER BY created_at DESC`, [], cb);
+  db.all(
+    `SELECT * FROM ai_results ORDER BY created_at DESC`,
+    [],
+    (err, rows) => {
+      if (err) return cb(err);
+      try {
+        rows = rows.map((row) => ({
+          ...row,
+          result: JSON.parse(row.result),
+        }));
+        cb(null, rows);
+      } catch (e) {
+        cb(new Error("Invalid JSON in database"));
+      }
+    }
+  );
 };
 
 exports.getAIResultById = (id, cb) => {
-  db.get(`SELECT * FROM ai_results WHERE id = ?`, [id], cb);
+  db.get(`SELECT * FROM ai_results WHERE id = ?`, [id], (err, row) => {
+    if (err || !row) return cb(err, row);
+    try {
+      row.result = JSON.parse(row.result);
+      cb(null, row);
+    } catch (e) {
+      cb(new Error("Invalid JSON in database"));
+    }
+  });
 };
 
 exports.updateAIResult = (id, result, cb) => {
